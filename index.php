@@ -1,60 +1,64 @@
 <?php
 
+$err = '';
 $flag = true;
-
 if (array_key_exists("register", $_POST)) {
   if (empty($_POST['first-name'])) {
-    echo "Enter your first name";
+    $err = $err."Enter your first name<br/>";
     $flag = false;
   } else {
       $fname = htmlspecialchars($_POST['first-name']);
   }
   if (empty($_POST['last-name'])) {
-      echo ("Enter your last name");
+    $err = $err."Enter your last name<br/>";
       $flag = false;
   } else {
       $lname = htmlspecialchars($_POST['last-name']);
   }
 
   if (empty($_POST['roll-no'])) {
-      echo "Enter your roll-no";
+    $err = $err."Enter your roll-no<br/>";
       $flag = false;
   } else {
+    if(preg_match('^[0-9]{3}[A-Z]{2}[0-9]{4}$^',htmlspecialchars($_POST['roll-no'])))
       $roll = htmlspecialchars($_POST['roll-no']);
+    else {
+      $err = $err."Invalid roll-no<br/>";
+      $flag = false;
+    }
+      
+  }
+
+  if ($flag) {
+    $link = (function(){
+      $parts = (parse_url(getenv('DATABASE_URL')));
+      extract($parts);
+      $path = ltrim($path, "/");
+      return pg_connect("host={$host} dbname={$path} user={$user} password={$pass}");
+    })();
+    /* check connection */
+    if (pg_last_error()) {
+        printf("Connection failed: %s\n", pg_last_error());
+        exit();
+    }
+    $checkQuery = "select 'id' from students where \"roll-no\" = '" . $roll . "';";
+
+    $checkResult = pg_query($link, $checkQuery);
+
+    if (pg_num_rows($checkResult)) {
+      $err = $err."Roll number already registered.<br/>";
+    } else {
+        $res = pg_query($link, "select max(id) from students");
+        $row = pg_fetch_array($res);
+        $id = $row['max'];
+        $id = $id + 1;
+        $query = "insert into students(id, \"firstName\", \"lastName\",\"roll-no\") values(".$id.",'" . $fname . "','" . $lname . "','" . $roll . "')";
+        if (pg_query($link, $query))
+          $err += "You are successfully registered in the database.";
+    }
+    pg_close($link);
   }
 }
-
-if ($flag) {
-  $link = (function(){
-    $parts = (parse_url(getenv('DATABASE_URL')));
-    extract($parts);
-    $path = ltrim($path, "/");
-    return pg_connect("host={$host} dbname={$path} user={$user} password={$pass}");
-  })();
-  /* check connection */
-  if (pg_last_error()) {
-      printf("Connection failed: %s\n", pg_last_error());
-      exit();
-  }
-  // print_r($_POST);
-  $checkQuery = "select 'id' from account where \"roll-no\" = '" . $roll . "';";
-
-  $checkResult = pg_query($link, $checkQuery);
-
-  if (pg_num_rows($checkResult)) {
-      echo "Roll number already registered.";
-  } else {
-      $res = pg_query($link, "select max(id) from students");
-      $row = pg_fetch_array($res);
-      $id = $row['max'];
-      $id = $id + 1;
-      $query = "insert into students(id, \"firstName\", \"lastName\",\"roll-no\") values(".$id.",'" . $fname . "','" . $lname . "','" . $roll . ")";
-
-      if (pg_query($link, $query))
-          echo "<h1>You are successfully registered in the database.</h1>";
-  }
-}
-
 
 ?>
 
@@ -86,7 +90,6 @@ body {
   display: block;
 }
 .form-inline {
-  /* display: block; */
   background-color: rgba(0, 0, 0, 0.35);
   font-family: 'PT Sans', sans-serif;
   display: flex;
@@ -112,11 +115,11 @@ body {
 <div class="vert">
   <button onClick=darkMode() class="d-mode"><i class="fa fa-moon-o fa-4x" aria-hidden="true"></i>
   </button>
-  <form onsubmit="event.preventDefault(); rollCheck();" class="needs-validation form-inline" method="post" novalidate>
+  <form class="needs-validation form-inline" method="post" novalidate>
     <div class="form-row">
       <div class="col-md-6 mb-3">
         <label for="validationCustom01">First name</label>
-        <input type="text" class="form-control" id="validationCustom01" placeholder="First name" name="first-name" required>
+        <input type="text" class="form-control" placeholder="First name" name="first-name" required>
         <div class="valid-feedback">
           Looks good!
         </div>
@@ -125,7 +128,7 @@ body {
     <div class="form-row">
       <div class="col-md-6 mb-3">
         <label for="validationCustom02">Last name</label>
-        <input type="text" class="form-control" id="validationCustom02" placeholder="Last name" name="last-name" required>
+        <input type="text" class="form-control" placeholder="Last name" name="last-name" required>
         <div class="valid-feedback">
           Looks good!
         </div>
@@ -145,8 +148,11 @@ body {
         </div>
       </div>
     </div>
-    <button class="btn btn-primary" type="submit">Submit form</button>
+    <button class="btn btn-primary" name="register" type="submit">Submit form</button>
   </form>
+  <div class="alert alert-warning" role="alert">
+  <?php echo $err; ?>
+</div>
 </div>
 
 <script>
@@ -159,7 +165,7 @@ body {
     // Loop over them and prevent submission
     var validation = Array.prototype.filter.call(forms, function(form) {
       form.addEventListener('submit', function(event) {
-        if (form.checkValidity() === false) {
+        if (form.checkValidity() === false || rollCheck() === false) {
           event.preventDefault();
           event.stopPropagation();
         }
@@ -171,12 +177,12 @@ body {
 
 function rollCheck() {
     var roll = document.getElementById('roll-no').value;
-    // console.log('Invalid roll number. Try again.');
     var re = RegExp('^[0-9]{3}[A-Z]{2}[0-9]{4}$');
     if(!re.test(roll)){
         alert('Invalid roll number.Try again.');
+        return false;
     }
-    return re.test(roll);
+    return true;
 }
 
 function darkMode() {
@@ -186,4 +192,3 @@ function darkMode() {
 </script>
 
 </body>
-</html>
