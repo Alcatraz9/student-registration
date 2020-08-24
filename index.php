@@ -54,7 +54,7 @@ if (array_key_exists("register", $_POST)) {
         $id = $id + 1;
         $query = "insert into students(id, \"firstName\", \"lastName\",\"roll-no\") values(".$id.",'" . $fname . "','" . $lname . "','" . $roll . "')";
         if (pg_query($link, $query))
-          $err += "You are successfully registered in the database.";
+        $err += "You are successfully registered in the database.";
     }
     pg_close($link);
   }
