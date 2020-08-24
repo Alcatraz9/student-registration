@@ -108,6 +108,9 @@ body {
   height: 70px;
   background-color: rgb(100, 50, 50);
 }
+.alert {
+  width: 270px;
+}
 </style>
 </head>
 
