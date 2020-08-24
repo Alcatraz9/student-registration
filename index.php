@@ -57,6 +57,7 @@ if (array_key_exists("register", $_POST)) {
         $err = $err."You are successfully registered in the database.";
     }
     pg_close($link);
+    header("location:list.php");
   }
 }
 
