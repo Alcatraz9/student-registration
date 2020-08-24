@@ -70,49 +70,10 @@ if (array_key_exists("register", $_POST)) {
 <head>
 
 <link href="bootstrap.min.css" rel="stylesheet">
+<link href="index.css" rel="stylesheet">
 <link href="bootstrap.min.js">
 <script src="https://use.fontawesome.com/bef0d2bc4d.js"></script>
-<style type="text/css">
-form {
-            display: block;
-        }
-@import url('https://fonts.googleapis.com/css2?family=PT+Sans&display=swap');
 
-body {
-  margin:0;
-  font-family: 'PT Sans', sans-serif;
-  background-color: cornflowerblue;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.vert {
-  display: block;
-}
-.form-inline {
-  background-color: rgba(0, 0, 0, 0.35);
-  font-family: 'PT Sans', sans-serif;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  width: 270px;
-  height: 470px;
-}
-.dark-mode {
-  background-color: rgb(0,0,0);
-  color: white;
-}
-.d-mode {
-  width: 270px;
-  height: 70px;
-  background-color: rgb(100, 50, 50);
-}
-.alert {
-  width: 270px;
-}
-</style>
 </head>
 
 <body>
